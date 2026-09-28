@@ -1,0 +1,606 @@
+{
+  "name": "Reto 17 - Informe ejecutivo diario",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 18
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        48
+      ],
+      "id": "92a7cb10-4641-4d46-90e5-f9532bc1e5ab",
+      "name": "Schedule Trigger"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610",
+          "mode": "list",
+          "cachedResultName": "Reto 17 - Informe ejecutivo diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Ventas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "fecha",
+              "lookupValue": "={{ $now.setZone('America/Bogota').toFormat('dd/MM/yyyy') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        -144
+      ],
+      "id": "4003788f-4221-4e94-a29d-04f3e78404bd",
+      "name": "Leer Ventas",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610",
+          "mode": "list",
+          "cachedResultName": "Reto 17 - Informe ejecutivo diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 571478882,
+          "mode": "list",
+          "cachedResultName": "Soporte",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit#gid=571478882"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "fecha",
+              "lookupValue": "={{ $now.setZone('America/Bogota').toFormat('dd/MM/yyyy') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        48
+      ],
+      "id": "686246ef-ed6a-4402-92e3-73b151c66335",
+      "name": "Leer Soporte",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610",
+          "mode": "list",
+          "cachedResultName": "Reto 17 - Informe ejecutivo diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 594617253,
+          "mode": "list",
+          "cachedResultName": "Operaciones",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit#gid=594617253"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "fecha",
+              "lookupValue": "={{ $now.setZone('America/Bogota').toFormat('dd/MM/yyyy') }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        224,
+        240
+      ],
+      "id": "4fc39226-a9ca-4692-a308-003008dba792",
+      "name": "Leer Operaciones",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input\n  .all()\n  .map(item => item.json)\n  .filter(row => row && Object.keys(row).length > 0);\n\nconst cerrados = rows.filter(\n  row => String(row.estado ?? '').trim().toUpperCase() === 'CERRADO'\n);\n\nconst valorVentas = cerrados.reduce(\n  (total, row) => total + (Number(row.valor) || 0),\n  0\n);\n\nreturn [\n  {\n    json: {\n      valor_ventas: valorVentas,\n      negocios_cerrados: cerrados.length,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        -144
+      ],
+      "id": "28529c58-5ddb-4308-9c2b-34c0da1539d6",
+      "name": "KPI Ventas"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input\n  .all()\n  .map(item => item.json)\n  .filter(row => row && Object.keys(row).length > 0);\n\nconst contarEstado = (estadoBuscado) =>\n  rows.filter(\n    row =>\n      String(row.estado ?? '').trim().toUpperCase() === estadoBuscado\n  ).length;\n\nreturn [\n  {\n    json: {\n      tickets_abiertos: contarEstado('ABIERTO'),\n      tickets_cerrados: contarEstado('CERRADO'),\n      tickets_vencidos: contarEstado('VENCIDO'),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        48
+      ],
+      "id": "45c20f4a-1285-4a40-84fd-d68b01734d5f",
+      "name": "KPI Soporte"
+    },
+    {
+      "parameters": {
+        "jsCode": "const rows = $input\n  .all()\n  .map(item => item.json)\n  .filter(row => row && Object.keys(row).length > 0);\n\nconst contarEstado = (estadoBuscado) =>\n  rows.filter(\n    row =>\n      String(row.estado ?? '').trim().toUpperCase() === estadoBuscado\n  ).length;\n\nreturn [\n  {\n    json: {\n      procesos_ejecutados: contarEstado('EJECUTADO'),\n      procesos_fallidos: contarEstado('FALLIDO'),\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        448,
+        240
+      ],
+      "id": "b703b5b7-549c-41c2-86ce-c6cfc99fdbd1",
+      "name": "KPI Operaciones"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "numberInputs": 3,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        672,
+        32
+      ],
+      "id": "6edf23eb-2a8d-41e0-b7ee-25c66416a511",
+      "name": "Consolidar KPIs"
+    },
+    {
+      "parameters": {
+        "jsCode": "const kpis = $input.first().json;\n\nconst fecha = $now\n  .setZone('America/Bogota')\n  .toFormat('dd/MM/yyyy');\n\nconst prompt = `\nActúa como analista ejecutivo de una empresa.\n\nDebes interpretar los siguientes KPIs correspondientes al día ${fecha}.\n\nIMPORTANTE:\n- No recalcules ni modifiques ninguna cifra.\n- Utiliza exactamente los valores proporcionados.\n- No inventes información que no esté presente.\n- Responde exclusivamente en JSON válido.\n- No utilices bloques Markdown.\n\nKPIs:\n\nVentas:\n- Valor de ventas: $${kpis.valor_ventas}\n- Negocios cerrados: ${kpis.negocios_cerrados}\n\nSoporte:\n- Tickets abiertos: ${kpis.tickets_abiertos}\n- Tickets cerrados: ${kpis.tickets_cerrados}\n- Tickets vencidos: ${kpis.tickets_vencidos}\n\nOperaciones:\n- Procesos ejecutados: ${kpis.procesos_ejecutados}\n- Procesos fallidos: ${kpis.procesos_fallidos}\n\nGenera exactamente esta estructura:\n\n{\n  \"resumen_ejecutivo\": \"Resumen breve del desempeño general del día\",\n  \"riesgos\": \"Principales riesgos detectados a partir exclusivamente de los KPIs\",\n  \"temas_atencion\": \"Aspectos que requieren seguimiento o atención\"\n}\n`;\n\nreturn [\n  {\n    json: {\n      fecha,\n      ...kpis,\n      prompt,\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        896,
+        48
+      ],
+      "id": "86a98067-db4d-49b4-aa98-182c48e53fd9",
+      "name": "Preparar informe IA"
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.groq.com/openai/v1/chat/completions",
+        "sendHeaders": true,
+        "headerParameters": {
+          "parameters": [
+            {
+              "name": "Authorization",
+              "value": "Bearer TU_GROQ_API_KEY"
+            }
+          ]
+        },
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"model\": \"openai/gpt-oss-120b\",\n  \"messages\": [\n    {\n      \"role\": \"user\",\n      \"content\": {{ JSON.stringify($json.prompt) }}\n    }\n  ],\n  \"response_format\": {\n    \"type\": \"json_object\"\n  },\n  \"temperature\": 0.2\n}",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.5,
+      "position": [
+        1120,
+        48
+      ],
+      "id": "25b3d6ed-d8ed-46b5-95d1-9b78589f2c83",
+      "name": "Analizar KPIs con IA"
+    },
+    {
+      "parameters": {
+        "jsCode": "const respuestaIA = $json.choices?.[0]?.message?.content ?? '{}';\n\nlet analisis;\n\ntry {\n  analisis = JSON.parse(respuestaIA);\n} catch (error) {\n  throw new Error(`La IA no devolvió JSON válido: ${respuestaIA}`);\n}\n\nconst kpis = $('Preparar informe IA').first().json;\n\nreturn [\n  {\n    json: {\n      fecha: kpis.fecha,\n\n      valor_ventas: kpis.valor_ventas,\n      negocios_cerrados: kpis.negocios_cerrados,\n\n      tickets_abiertos: kpis.tickets_abiertos,\n      tickets_cerrados: kpis.tickets_cerrados,\n      tickets_vencidos: kpis.tickets_vencidos,\n\n      procesos_ejecutados: kpis.procesos_ejecutados,\n      procesos_fallidos: kpis.procesos_fallidos,\n\n      resumen_ejecutivo: analisis.resumen_ejecutivo ?? '',\n      riesgos: analisis.riesgos ?? '',\n      temas_atencion: analisis.temas_atencion ?? '',\n    },\n  },\n];"
+      },
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        1344,
+        48
+      ],
+      "id": "4ae3fe51-e0b7-4ad0-b60e-746760726889",
+      "name": "Construir informe final"
+    },
+    {
+      "parameters": {
+        "sendTo": "zehrty.dev@gmail.com",
+        "subject": "=Informe ejecutivo diario - {{ $json.fecha }}",
+        "message": "=<div style=\"font-family: Arial, sans-serif; max-width: 760px; margin: 0 auto; color: #222;\">      <h2 style=\"margin-bottom: 4px;\">📊 Informe ejecutivo diario</h2>   <p style=\"margin-top: 0; color: #666;\">     Fecha: <strong>{{ $json.fecha }}</strong>   </p>    <hr>    <h3>💰 Ventas</h3>   <table style=\"width:100%; border-collapse: collapse;\">     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Valor de ventas</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>${{ Number($json.valor_ventas).toLocaleString('es-CO') }} COP</strong>       </td>     </tr>     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Negocios cerrados</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>{{ $json.negocios_cerrados }}</strong>       </td>     </tr>   </table>    <h3>🎫 Soporte</h3>   <table style=\"width:100%; border-collapse: collapse;\">     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Tickets abiertos</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>{{ $json.tickets_abiertos }}</strong>       </td>     </tr>     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Tickets cerrados</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>{{ $json.tickets_cerrados }}</strong>       </td>     </tr>     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Tickets vencidos</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>{{ $json.tickets_vencidos }}</strong>       </td>     </tr>   </table>    <h3>⚙️ Operaciones</h3>   <table style=\"width:100%; border-collapse: collapse;\">     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Procesos ejecutados</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>{{ $json.procesos_ejecutados }}</strong>       </td>     </tr>     <tr>       <td style=\"padding:8px; border-bottom:1px solid #ddd;\">Procesos fallidos</td>       <td style=\"padding:8px; border-bottom:1px solid #ddd; text-align:right;\">         <strong>{{ $json.procesos_fallidos }}</strong>       </td>     </tr>   </table>    <hr>    <h3>🧠 Resumen ejecutivo</h3>   <p style=\"line-height:1.6;\">     {{ $json.resumen_ejecutivo }}   </p>    <h3>⚠️ Riesgos</h3>   <p style=\"line-height:1.6;\">     {{ $json.riesgos }}   </p>    <h3>🔎 Temas de atención</h3>   <p style=\"line-height:1.6;\">     {{ $json.temas_atencion }}   </p>    <hr>    <p style=\"font-size:12px; color:#777;\">     Informe generado automáticamente mediante n8n.   </p>  </div>",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        1568,
+        -48
+      ],
+      "id": "8fdacba7-e136-40a8-8522-b6f9a17935ab",
+      "name": "Enviar informe ejecutivo",
+      "webhookId": "3d1b0744-5112-411d-9a63-f47b9372e5f2",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XHY6ouETa2Owl9td",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610",
+          "mode": "list",
+          "cachedResultName": "Reto 17 - Informe ejecutivo diario",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1382744108,
+          "mode": "list",
+          "cachedResultName": "Informes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1Dn-qLKblIR7Io7aizuV27F07NisR-5FCYvwYCnGW610/edit#gid=1382744108"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha": "={{ $json.fecha }}",
+            "valor_ventas": "={{ $json.valor_ventas }}",
+            "negocios_cerrados": "={{ $json.negocios_cerrados }}",
+            "tickets_abiertos": "={{ $json.tickets_abiertos }}",
+            "tickets_cerrados": "={{ $json.tickets_cerrados }}",
+            "tickets_vencidos": "={{ $json.tickets_vencidos }}",
+            "procesos_ejecutados": "={{ $json.procesos_ejecutados }}",
+            "procesos_fallidos": "={{ $json.procesos_fallidos }}",
+            "resumen_ejecutivo": "={{ $json.resumen_ejecutivo }}",
+            "riesgos": "={{ $json.riesgos }}",
+            "temas_atencion": "={{ $json.temas_atencion }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "valor_ventas",
+              "displayName": "valor_ventas",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "negocios_cerrados",
+              "displayName": "negocios_cerrados",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tickets_abiertos",
+              "displayName": "tickets_abiertos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tickets_cerrados",
+              "displayName": "tickets_cerrados",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "tickets_vencidos",
+              "displayName": "tickets_vencidos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "procesos_ejecutados",
+              "displayName": "procesos_ejecutados",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "procesos_fallidos",
+              "displayName": "procesos_fallidos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "resumen_ejecutivo",
+              "displayName": "resumen_ejecutivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "riesgos",
+              "displayName": "riesgos",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "temas_atencion",
+              "displayName": "temas_atencion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        144
+      ],
+      "id": "c31a60f7-7c16-4bc0-b133-fc9276d062d7",
+      "name": "Registrar informe",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Schedule Trigger": {
+      "main": [
+        [
+          {
+            "node": "Leer Soporte",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Leer Ventas",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Leer Operaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Ventas": {
+      "main": [
+        [
+          {
+            "node": "KPI Ventas",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Soporte": {
+      "main": [
+        [
+          {
+            "node": "KPI Soporte",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Leer Operaciones": {
+      "main": [
+        [
+          {
+            "node": "KPI Operaciones",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KPI Ventas": {
+      "main": [
+        [
+          {
+            "node": "Consolidar KPIs",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "KPI Soporte": {
+      "main": [
+        [
+          {
+            "node": "Consolidar KPIs",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "KPI Operaciones": {
+      "main": [
+        [
+          {
+            "node": "Consolidar KPIs",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Consolidar KPIs": {
+      "main": [
+        [
+          {
+            "node": "Preparar informe IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar informe IA": {
+      "main": [
+        [
+          {
+            "node": "Analizar KPIs con IA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Analizar KPIs con IA": {
+      "main": [
+        [
+          {
+            "node": "Construir informe final",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Construir informe final": {
+      "main": [
+        [
+          {
+            "node": "Enviar informe ejecutivo",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Registrar informe",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e48de3e2-c501-4f0c-b25d-e187ec4aece3",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e18f7f45af7b762d17bca0cb617e7a822a32b40f721449038e7b3ba0ac7130a4"
+  },
+  "nodeGroups": [],
+  "id": "0lxxsowbLVV2lPr9",
+  "tags": [
+    {
+      "updatedAt": "2026-09-27T17:27:03.143Z",
+      "createdAt": "2026-09-27T17:27:03.143Z",
+      "id": "PXWHsnEwf5WQ00SM",
+      "name": "sheets"
+    },
+    {
+      "updatedAt": "2026-09-27T17:27:14.386Z",
+      "createdAt": "2026-09-27T17:27:14.386Z",
+      "id": "RePNC4Ucp5DLtNsz",
+      "name": "gmail"
+    },
+    {
+      "updatedAt": "2026-09-27T17:26:28.309Z",
+      "createdAt": "2026-09-27T17:26:28.309Z",
+      "id": "yxphyX4Bc9GmzDJ6",
+      "name": "groq"
+    }
+  ]
+}

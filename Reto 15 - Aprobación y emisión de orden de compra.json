@@ -1,0 +1,1421 @@
+{
+  "name": "Reto 15 - Aprobación y emisión de orden de compra",
+  "nodes": [
+    {
+      "parameters": {
+        "workflowInputs": {
+          "values": [
+            {
+              "name": "id_solicitud"
+            },
+            {
+              "name": "fecha_solicitud"
+            },
+            {
+              "name": "solicitante"
+            },
+            {
+              "name": "correo"
+            },
+            {
+              "name": "centro_costo"
+            },
+            {
+              "name": "justificacion"
+            },
+            {
+              "name": "detalle_items",
+              "type": "array"
+            },
+            {
+              "name": "total",
+              "type": "number"
+            },
+            {
+              "name": "estado"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        0,
+        -608
+      ],
+      "id": "ccee8ab8-9e54-42f9-99ef-6d1510c2ab28",
+      "name": "When Executed by Another Workflow"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "083008fc-df4f-4ddf-82d7-c10e87be3ded",
+              "name": "nivel_aprobacion",
+              "value": "={{   Number($json.total) <= 2000000     ? 'AUTOMATICA'     : Number($json.total) <= 5000000       ? 'JEFE'       : 'FINANCIERA' }}",
+              "type": "string"
+            },
+            {
+              "id": "80fc4a72-ad1f-479f-bf91-ac0cc992f6ac",
+              "name": "fecha_procesamiento",
+              "value": "={{ $now.setZone('America/Bogota').toISO() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": "nivel_aprobacion",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        -608
+      ],
+      "id": "c1ca829e-7979-49ba-a597-24bb529d9b9a",
+      "name": "Determinar nivel"
+    },
+    {
+      "parameters": {
+        "rules": {
+          "values": [
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "leftValue": "={{ $json.nivel_aprobacion }}",
+                    "rightValue": "AUTOMATICA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals"
+                    },
+                    "id": "c5f61f29-3ea8-4a54-a3b3-f454ed81bc6b"
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "AUTOMATICA"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "11ec3227-9a98-45d6-8a10-d708850bf337",
+                    "leftValue": "={{ $json.nivel_aprobacion }}",
+                    "rightValue": "JEFE",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "JEFE"
+            },
+            {
+              "conditions": {
+                "options": {
+                  "caseSensitive": true,
+                  "leftValue": "",
+                  "typeValidation": "strict",
+                  "version": 3
+                },
+                "conditions": [
+                  {
+                    "id": "f9a446e0-8b29-4c2d-953f-77bfcde839ff",
+                    "leftValue": "={{ $json.nivel_aprobacion }}",
+                    "rightValue": "FINANCIERA",
+                    "operator": {
+                      "type": "string",
+                      "operation": "equals",
+                      "name": "filter.operator.equals"
+                    }
+                  }
+                ],
+                "combinator": "and"
+              },
+              "renameOutput": true,
+              "outputKey": "FINANCIERA"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.switch",
+      "typeVersion": 3.4,
+      "position": [
+        448,
+        -624
+      ],
+      "id": "a15d83b6-6a0e-4a35-8ede-6fccdcf2f885",
+      "name": "Enrutar aprobación"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "zehrty.dev@gmail.com",
+        "subject": "=Solicitud de compra pendiente de aprobación - {{ $json.id_solicitud }}",
+        "message": "=Solicitud de compra pendiente de aprobación\n\nID: {{ $json.id_solicitud }}\nSolicitante: {{ $json.solicitante }}\nCentro de costo: {{ $json.centro_costo }}\nJustificación: {{ $json.justificacion }}\n\nTotal: ${{ $json.total.toLocaleString('es-CO') }} COP\nNivel de aprobación: {{ $json.nivel_aprobacion }}\n\nRevise la solicitud y seleccione Aprobar o Rechazar.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Aprobar",
+            "disapproveLabel": "Rechazar"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -560
+      ],
+      "id": "d0a835c0-915e-41cb-b538-03fee25d05ec",
+      "name": "Send message and wait for response",
+      "webhookId": "969ecbf7-510a-4b18-99b3-dc278e3733b9",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XHY6ouETa2Owl9td",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "19078c8c-d886-4b0f-855a-6ad14023ef77",
+              "name": "id_solicitud",
+              "value": "={{ $('Determinar nivel').first().json.id_solicitud }}",
+              "type": "string"
+            },
+            {
+              "id": "38488748-c043-4c2f-912e-50e1b261b9bb",
+              "name": "solicitante",
+              "value": "={{ $('Determinar nivel').first().json.solicitante }}",
+              "type": "string"
+            },
+            {
+              "id": "a01e42fb-4ec0-4827-8474-e9d8f5b42ab4",
+              "name": "correo",
+              "value": "={{ $('Determinar nivel').first().json.correo }}",
+              "type": "string"
+            },
+            {
+              "id": "44267057-5c71-4033-810e-cdcc9f0ba0f6",
+              "name": "centro_costo",
+              "value": "={{ $('Determinar nivel').first().json.centro_costo }}",
+              "type": "string"
+            },
+            {
+              "id": "46235ca5-97a0-4bd5-8543-cbd1b9419c3e",
+              "name": "justificacion",
+              "value": "={{ $('Determinar nivel').first().json.justificacion }}",
+              "type": "string"
+            },
+            {
+              "id": "2f701f1b-e8ed-4a71-8465-ad0a9ce78c72",
+              "name": "detalle_items",
+              "value": "={{ $('Determinar nivel').first().json.detalle_items }}",
+              "type": "array"
+            },
+            {
+              "id": "bd0d3f8a-a17f-4a59-84d6-42d40f64bd99",
+              "name": "total",
+              "value": "={{ $('Determinar nivel').first().json.total }}",
+              "type": "number"
+            },
+            {
+              "id": "34207336-4208-4c8f-b4fb-17b62c28fb4e",
+              "name": "nivel_aprobacion",
+              "value": "={{ $('Determinar nivel').first().json.nivel_aprobacion }}",
+              "type": "string"
+            },
+            {
+              "id": "71913b13-922d-4691-a1ea-ac7c24f930b6",
+              "name": "aprobado",
+              "value": "={{ $json.data.approved }}",
+              "type": "boolean"
+            },
+            {
+              "id": "8a2f80ba-b085-4e23-8b0b-ef05a46a094d",
+              "name": "fecha_decision",
+              "value": "={{ $json.data.respondedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "c544ebbd-e324-4e3f-840f-97e93ea2b466",
+              "name": "estado_decision",
+              "value": "={{ $json.data.approved ? 'APROBADA' : 'RECHAZADA' }}",
+              "type": "string"
+            },
+            {
+              "id": "ff14c597-ebe5-49de-87b7-94f64250f779",
+              "name": "fecha_solicitud",
+              "value": "={{ $('Determinar nivel').first().json.fecha_solicitud }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        -560
+      ],
+      "id": "f6d99b6d-e596-442d-8630-ce3a3c9a4163",
+      "name": "Preparar decisión JEFE"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "05841dc4-977f-4045-b867-8c5bbacbee89",
+              "leftValue": "={{ $json.aprobado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -560
+      ],
+      "id": "1cdd9a49-95a6-4590-b40f-24ee3ed8b84f",
+      "name": "¿Solicitud aprobada?"
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0",
+          "mode": "list",
+          "cachedResultName": "Reto 14 y 15 - Solicitudes de compra",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $json.id_solicitud }}",
+            "estado": "={{ $json.estado_decision }}",
+            "nivel_aprobacion": "={{ $json.nivel_aprobacion }}",
+            "fecha_decision": "={{ $json.fecha_decision }}"
+          },
+          "matchingColumns": [
+            "id_solicitud"
+          ],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "solicitante",
+              "displayName": "solicitante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "centro_costo",
+              "displayName": "centro_costo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "justificacion",
+              "displayName": "justificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "detalle_items",
+              "displayName": "detalle_items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total",
+              "displayName": "total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nivel_aprobacion",
+              "displayName": "nivel_aprobacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_decision",
+              "displayName": "fecha_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1680,
+        -368
+      ],
+      "id": "679caeab-0331-469f-8f80-089399226946",
+      "name": "Actualizar solicitud RECHAZADA",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Preparar rechazo').first().json.correo }}",
+        "subject": "=Solicitud de compra rechazada - {{ $json.id_solicitud }}",
+        "message": "=<h2>Solicitud de compra rechazada</h2>\n\n<p>\nHola <strong>{{ $('Preparar rechazo').first().json.solicitante }}</strong>,\n</p>\n\n<p>\nLa solicitud de compra\n<strong>{{ $('Preparar rechazo').first().json.id_solicitud }}</strong>\nfue rechazada.\n</p>\n\n<p>\n<strong>Centro de costo:</strong>\n{{ $('Preparar rechazo').first().json.centro_costo }}<br>\n\n<strong>Total:</strong>\n${{ Number($('Preparar rechazo').first().json.total).toLocaleString('es-CO') }} COP<br>\n\n<strong>Nivel de aprobación:</strong>\n{{ $('Preparar rechazo').first().json.nivel_aprobacion }}<br>\n\n<strong>Fecha de decisión:</strong>\n{{ DateTime.fromISO($('Preparar rechazo').first().json.fecha_decision).setZone('America/Bogota').toFormat('dd/MM/yyyy hh:mm a') }}\n</p>\n\n<p>\nLa solicitud no continuará con la generación de la orden de compra.\n</p>\n\n<hr>\n\n<p>Este mensaje fue generado automáticamente por el flujo de solicitudes de compra.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2016,
+        -384
+      ],
+      "id": "493892a5-3ef0-4853-bd29-1bedd20eb025",
+      "name": "Notificar rechazo al solicitante",
+      "webhookId": "38ce0488-c5a9-402f-a4ff-571deefefca7",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XHY6ouETa2Owl9td",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0",
+          "mode": "list",
+          "cachedResultName": "Reto 14 y 15 - Solicitudes de compra",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $json.id_solicitud }}",
+            "estado": "={{ $json.estado_decision }}",
+            "nivel_aprobacion": "={{ $json.nivel_aprobacion }}",
+            "fecha_decision": "={{ $json.fecha_decision }}"
+          },
+          "matchingColumns": [
+            "id_solicitud"
+          ],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "solicitante",
+              "displayName": "solicitante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "centro_costo",
+              "displayName": "centro_costo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "justificacion",
+              "displayName": "justificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "detalle_items",
+              "displayName": "detalle_items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total",
+              "displayName": "total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nivel_aprobacion",
+              "displayName": "nivel_aprobacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fecha_decision",
+              "displayName": "fecha_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1568,
+        -608
+      ],
+      "id": "25f4d4f6-c98a-4b75-9d57-e45ff486cdcd",
+      "name": "Actualizar solicitud APROBADA",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f04e6533-364c-4701-905a-c1d95980492f",
+              "name": "nombre_orden",
+              "value": "=OC - {{ $json.id_solicitud }}",
+              "type": "string"
+            },
+            {
+              "id": "4c530070-174b-4afc-a24f-c22508fb60ac",
+              "name": "fecha_solicitud",
+              "value": "={{ $('Determinar nivel').first().json.fecha_solicitud }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1344,
+        -608
+      ],
+      "id": "6a7dba44-f5e6-47d0-846f-f61dda60a8e0",
+      "name": "Preparar orden de compra"
+    },
+    {
+      "parameters": {
+        "folderId": "=1pE3WDYnaZBr9EM1m1BMAfVgZE8_pzr4K",
+        "title": "={{ $json.nombre_orden }}"
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        1792,
+        -608
+      ],
+      "id": "77bc417c-ac6a-4f29-a560-ad6db9032fc6",
+      "name": "Create a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "URByIdZmcfaj53ma",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentURL": "={{ $('Create a document').first().json.id }}",
+        "actionsUi": {
+          "actionFields": [
+            {
+              "action": "insert",
+              "text": "={{\n[\n  'ORDEN DE COMPRA',\n  $('Preparar orden de compra').first().json.id_solicitud,\n  '',\n  'INFORMACIÓN DE LA SOLICITUD',\n  '',\n  `Fecha: ${DateTime.fromISO($('Preparar orden de compra').first().json.fecha_solicitud).setZone('America/Bogota').toFormat('dd/MM/yyyy')}`,\n  `Solicitante: ${$('Preparar orden de compra').first().json.solicitante}`,\n  `Correo: ${$('Preparar orden de compra').first().json.correo}`,\n  `Centro de costo: ${$('Preparar orden de compra').first().json.centro_costo}`,\n  '',\n  'JUSTIFICACIÓN',\n  '',\n  $('Preparar orden de compra').first().json.justificacion,\n  '',\n  'DETALLE DE ÍTEMS',\n  '',\n  ...$('Preparar orden de compra').first().json.detalle_items.flatMap((item, index) => [\n    `${index + 1}. ${item.descripcion}`,\n    `   Cantidad: ${item.cantidad}`,\n    `   Valor unitario: $${Number(item.valor_unitario).toLocaleString('es-CO')} COP`,\n    `   Subtotal: $${Number(item.subtotal).toLocaleString('es-CO')} COP`,\n    ''\n  ]),\n  `TOTAL: $${Number($('Preparar orden de compra').first().json.total).toLocaleString('es-CO')} COP`,\n  '',\n  'APROBACIÓN',\n  '',\n  `Nivel de aprobación: ${$('Preparar orden de compra').first().json.nivel_aprobacion}`,\n  `Fecha de decisión: ${DateTime.fromISO($('Preparar orden de compra').first().json.fecha_decision).setZone('America/Bogota').toFormat('dd/MM/yyyy - hh:mm a')}`,\n  'Estado: APROBADA'\n].join('\\n')\n}}"
+            }
+          ]
+        }
+      },
+      "type": "n8n-nodes-base.googleDocs",
+      "typeVersion": 2,
+      "position": [
+        2016,
+        -608
+      ],
+      "id": "02d509e7-f334-4140-bc83-a9e0c6cdd185",
+      "name": "Update a document",
+      "credentials": {
+        "googleDocsOAuth2Api": {
+          "id": "URByIdZmcfaj53ma",
+          "name": "Google Docs account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sendTo": "={{ $('Preparar orden de compra').first().json.correo }}",
+        "subject": "=Orden de compra emitida - {{ $('Preparar orden de compra').first().json.id_solicitud }}",
+        "message": "=<h2>Orden de compra emitida</h2>  <p>Hola <strong>{{ $('Preparar orden de compra').first().json.solicitante }}</strong>,</p>  <p>La solicitud de compra <strong>{{ $('Preparar orden de compra').first().json.id_solicitud }}</strong> fue aprobada y su orden de compra ha sido emitida correctamente.</p>  <p> <strong>Centro de costo:</strong> {{ $('Preparar orden de compra').first().json.centro_costo }}<br> <strong>Total:</strong> ${{ Number($('Preparar orden de compra').first().json.total).toLocaleString('es-CO') }} COP<br> <strong>Nivel de aprobación:</strong> {{ $('Preparar orden de compra').first().json.nivel_aprobacion }} </p>  <p> <a href=\"https://docs.google.com/document/d/{{ $('Create a document').first().json.id }}/edit\"> Ver orden de compra </a> </p>  <p><strong>Estado final:</strong> EMITIDA</p>  <hr>  <p>Este mensaje fue generado automáticamente por el flujo de solicitudes de compra.</p>",
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        2240,
+        -608
+      ],
+      "id": "a19c1256-1b70-47e5-9033-8e2c344c755b",
+      "name": "Notificar orden emitida",
+      "webhookId": "668b30d7-b486-400e-899f-142562142018",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XHY6ouETa2Owl9td",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "update",
+        "documentId": {
+          "__rl": true,
+          "value": "1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0",
+          "mode": "list",
+          "cachedResultName": "Reto 14 y 15 - Solicitudes de compra",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "Solicitudes",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1RYiumSDG9Z1Asbtk-hY9i2EXL4b5c5gQHs7JxzX2Zt0/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "id_solicitud": "={{ $('Preparar orden de compra').first().json.id_solicitud }}",
+            "estado": "EMITIDA"
+          },
+          "matchingColumns": [
+            "id_solicitud"
+          ],
+          "schema": [
+            {
+              "id": "id_solicitud",
+              "displayName": "id_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_solicitud",
+              "displayName": "fecha_solicitud",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "solicitante",
+              "displayName": "solicitante",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "correo",
+              "displayName": "correo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "centro_costo",
+              "displayName": "centro_costo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "justificacion",
+              "displayName": "justificacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "detalle_items",
+              "displayName": "detalle_items",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "total",
+              "displayName": "total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nivel_aprobacion",
+              "displayName": "nivel_aprobacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "fecha_decision",
+              "displayName": "fecha_decision",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": true
+            },
+            {
+              "id": "row_number",
+              "displayName": "row_number",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "number",
+              "canBeUsedToMatch": true,
+              "readOnly": true,
+              "removed": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2464,
+        -608
+      ],
+      "id": "469ab825-95a3-47c1-abf8-6de2ffb4d192",
+      "name": "Actualizar solicitud EMITIDA",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "ad2efa73-6eba-487a-a514-6f4026265d75",
+              "name": "aprobado",
+              "value": true,
+              "type": "boolean"
+            },
+            {
+              "id": "1709d824-a06a-45cb-b606-15edba0e07ca",
+              "name": "fecha_decision",
+              "value": "={{ $now.setZone('America/Bogota').toISO() }}",
+              "type": "string"
+            },
+            {
+              "id": "2d51863b-2799-4054-96dc-dc9ac16a78e7",
+              "name": "estado_decision",
+              "value": "APROBADA",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1120,
+        -752
+      ],
+      "id": "94a4f5aa-b8f5-4ef9-9c9e-8edc8cd89f0d",
+      "name": "Preparar decisión AUTOMATICA"
+    },
+    {
+      "parameters": {
+        "operation": "sendAndWait",
+        "sendTo": "zehrty.dev@gmail.com",
+        "subject": "=Solicitud pendiente de aprobación financiera - {{ $json.id_solicitud }}",
+        "message": "=Solicitud de compra pendiente de aprobación financiera\n\nID: {{ $json.id_solicitud }}\nSolicitante: {{ $json.solicitante }}\nCentro de costo: {{ $json.centro_costo }}\nJustificación: {{ $json.justificacion }}\n\nTotal: ${{ Number($json.total).toLocaleString('es-CO') }} COP\nNivel de aprobación: {{ $json.nivel_aprobacion }}\n\nEsta solicitud requiere aprobación del área financiera.\n\nSeleccione Aprobar o Rechazar.",
+        "approvalOptions": {
+          "values": {
+            "approvalType": "double",
+            "approveLabel": "Aprobar",
+            "disapproveLabel": "Rechazar"
+          }
+        },
+        "options": {
+          "appendAttribution": false
+        }
+      },
+      "type": "n8n-nodes-base.gmail",
+      "typeVersion": 2.2,
+      "position": [
+        672,
+        -368
+      ],
+      "id": "8bc44a3b-0a21-491c-be16-904c9b505af9",
+      "name": "Solicitar aprobación FINANCIERA",
+      "webhookId": "b238f395-23b7-4b3c-a435-25981a8ae532",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XHY6ouETa2Owl9td",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "cef552a5-7f59-465d-9abe-0a2d9f492c58",
+              "name": "id_solicitud",
+              "value": "={{ $('Determinar nivel').first().json.id_solicitud }}",
+              "type": "string"
+            },
+            {
+              "id": "681bcebd-ab1f-4e20-a766-67960fafce1a",
+              "name": "solicitante",
+              "value": "={{ $('Determinar nivel').first().json.solicitante }}",
+              "type": "string"
+            },
+            {
+              "id": "896397bb-2d6d-4722-a40d-27656d2f113e",
+              "name": "correo",
+              "value": "={{ $('Determinar nivel').first().json.correo }}",
+              "type": "string"
+            },
+            {
+              "id": "d177787c-3883-4483-af68-792e6c8f8ebe",
+              "name": "centro_costo",
+              "value": "={{ $('Determinar nivel').first().json.centro_costo }}",
+              "type": "string"
+            },
+            {
+              "id": "14c53740-0f3b-465d-9b45-8fb2a659bc22",
+              "name": "justificacion",
+              "value": "={{ $('Determinar nivel').first().json.justificacion }}",
+              "type": "string"
+            },
+            {
+              "id": "d8a30a32-050c-4db3-8bed-3b16b0fe20f9",
+              "name": "detalle_items",
+              "value": "={{ $('Determinar nivel').first().json.detalle_items }}",
+              "type": "array"
+            },
+            {
+              "id": "e6bc2b87-efec-4663-9847-cbfaf15fb15d",
+              "name": "total",
+              "value": "={{ $('Determinar nivel').first().json.total }}\n",
+              "type": "number"
+            },
+            {
+              "id": "1974b672-e830-482e-8872-8dbcb3ddffde",
+              "name": "nivel_aprobacion",
+              "value": "={{ $('Determinar nivel').first().json.nivel_aprobacion }}",
+              "type": "string"
+            },
+            {
+              "id": "cbe49685-6f0a-4fa0-8c2c-18f38e11849f",
+              "name": "aprobado",
+              "value": "={{ $json.data.approved }}",
+              "type": "boolean"
+            },
+            {
+              "id": "15acd18a-c99f-4325-9578-b4eb93a8b143",
+              "name": "fecha_decision",
+              "value": "={{ $json.data.respondedAt }}",
+              "type": "string"
+            },
+            {
+              "id": "d39f10ba-3e08-4136-bc05-00aa30b17acb",
+              "name": "estado_decision",
+              "value": "={{ $json.data.approved ? 'APROBADA' : 'RECHAZADA' }}",
+              "type": "string"
+            },
+            {
+              "id": "cf159bb4-39f1-418d-80bb-272416752a4c",
+              "name": "fecha_solicitud",
+              "value": "={{ $('Determinar nivel').first().json.fecha_solicitud }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        896,
+        -368
+      ],
+      "id": "2fc57563-4c5f-45ac-8cf4-7a5af819fbb7",
+      "name": "Preparar decisión FINANCIERA"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "c2714c96-837e-408e-9c68-551e04201a58",
+              "leftValue": "={{ $json.aprobado }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1120,
+        -368
+      ],
+      "id": "533b6fde-d863-401e-a83b-3c74a39b6936",
+      "name": "¿Solicitud financiera aprobada?"
+    },
+    {
+      "parameters": {
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1392,
+        -352
+      ],
+      "id": "c7580575-36d2-46f9-999b-5e33436cd391",
+      "name": "Preparar rechazo"
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "When Executed by Another Workflow": {
+      "main": [
+        [
+          {
+            "node": "Determinar nivel",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Determinar nivel": {
+      "main": [
+        [
+          {
+            "node": "Enrutar aprobación",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Enrutar aprobación": {
+      "main": [
+        [
+          {
+            "node": "Preparar decisión AUTOMATICA",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Send message and wait for response",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Solicitar aprobación FINANCIERA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Send message and wait for response": {
+      "main": [
+        [
+          {
+            "node": "Preparar decisión JEFE",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar decisión JEFE": {
+      "main": [
+        [
+          {
+            "node": "¿Solicitud aprobada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Solicitud aprobada?": {
+      "main": [
+        [
+          {
+            "node": "Preparar orden de compra",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar rechazo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar solicitud RECHAZADA": {
+      "main": [
+        [
+          {
+            "node": "Notificar rechazo al solicitante",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Actualizar solicitud APROBADA": {
+      "main": [
+        [
+          {
+            "node": "Create a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar orden de compra": {
+      "main": [
+        [
+          {
+            "node": "Actualizar solicitud APROBADA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Create a document": {
+      "main": [
+        [
+          {
+            "node": "Update a document",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Update a document": {
+      "main": [
+        [
+          {
+            "node": "Notificar orden emitida",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Notificar orden emitida": {
+      "main": [
+        [
+          {
+            "node": "Actualizar solicitud EMITIDA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar decisión AUTOMATICA": {
+      "main": [
+        [
+          {
+            "node": "Preparar orden de compra",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Solicitar aprobación FINANCIERA": {
+      "main": [
+        [
+          {
+            "node": "Preparar decisión FINANCIERA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar decisión FINANCIERA": {
+      "main": [
+        [
+          {
+            "node": "¿Solicitud financiera aprobada?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "¿Solicitud financiera aprobada?": {
+      "main": [
+        [
+          {
+            "node": "Preparar orden de compra",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar rechazo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar rechazo": {
+      "main": [
+        [
+          {
+            "node": "Actualizar solicitud RECHAZADA",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "00cf38f5-3fc2-41e2-9e56-973c73db1594",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e18f7f45af7b762d17bca0cb617e7a822a32b40f721449038e7b3ba0ac7130a4"
+  },
+  "nodeGroups": [],
+  "id": "Ex9MdtuMWSJ5qtgq",
+  "tags": [
+    {
+      "updatedAt": "2026-09-27T17:27:03.143Z",
+      "createdAt": "2026-09-27T17:27:03.143Z",
+      "id": "PXWHsnEwf5WQ00SM",
+      "name": "sheets"
+    },
+    {
+      "updatedAt": "2026-09-27T17:27:14.386Z",
+      "createdAt": "2026-09-27T17:27:14.386Z",
+      "id": "RePNC4Ucp5DLtNsz",
+      "name": "gmail"
+    },
+    {
+      "updatedAt": "2026-09-28T02:38:11.093Z",
+      "createdAt": "2026-09-28T02:38:11.093Z",
+      "id": "sP6dhXrDL0N5tO2h",
+      "name": "docs"
+    }
+  ]
+}

@@ -1,0 +1,963 @@
+{
+  "name": "Reto 16 - Control de calidad de clientes en el taller",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "documentId": {
+          "__rl": true,
+          "value": "1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU",
+          "mode": "list",
+          "cachedResultName": "Reto 16 - Control de calidad de clientes en el taller",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "db",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit#gid=0"
+        },
+        "event": "rowAdded",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheetsTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -144
+      ],
+      "id": "b30c7dfb-8b68-4f10-969e-bfc252db6acb",
+      "name": "Google Sheets Trigger",
+      "credentials": {
+        "googleSheetsTriggerOAuth2Api": {
+          "id": "tZ56fOERNaGCZu0n",
+          "name": "Google Sheets Trigger account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "21b8a552-5ac6-4a52-aaca-8648945e56d7",
+              "name": "nombre",
+              "value": "={{ String($json.nombre ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "c3a2949e-bb5f-4d58-8efd-17266344af65",
+              "name": "apellido",
+              "value": "={{ String($json.apellido ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "b3e62944-7d82-4b02-bcbb-aaf7955de0f1",
+              "name": "email",
+              "value": "={{ String($json.email ?? '').trim().toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "6f442200-437d-46e4-93dd-6991f7706a7a",
+              "name": "telefono",
+              "value": "={{ String($json.telefono ?? '').replace(/\\D/g, '') }}",
+              "type": "string"
+            },
+            {
+              "id": "cac56b78-7a61-474c-9275-303cb73d7a6b",
+              "name": "empresa",
+              "value": "={{ String($json.empresa ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "1d93ddc2-e8eb-4532-b318-333a7f3177d8",
+              "name": "nit",
+              "value": "={{ String($json.nit ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "242e300b-e760-42f0-ae7e-258499fc4112",
+              "name": "ciudad",
+              "value": "={{ String($json.ciudad ?? '').trim() }}",
+              "type": "string"
+            },
+            {
+              "id": "60d3590a-f46d-4f59-9a0a-2afce88c5c0c",
+              "name": "fecha",
+              "value": "={{ String($json.fecha ?? '').trim() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        -144
+      ],
+      "id": "d884fde3-4b5e-41d9-b375-4c27dfcad8f7",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "7c1e4209-e970-4087-a9d9-20e913d8d783",
+              "leftValue": "={{ $json.nombre }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "19852df5-f4e9-43a4-b8b0-795093aa0b47",
+              "leftValue": "={{ $json.email }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "79de2199-49d5-480b-9ae1-c556bf667f8e",
+              "leftValue": "={{ $json.empresa }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "2fca3197-99a2-419b-87c9-04befa9976e4",
+              "leftValue": "={{ $json.nit }}",
+              "rightValue": "",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -144
+      ],
+      "id": "3bb39516-fa91-438d-8f6a-c8d1b3abda3b",
+      "name": "Campos obligatorios completos?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1f5dc60d-1e6f-45fb-8af7-f134d9afb846",
+              "leftValue": "={{ /^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$/.test($json.email) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        672,
+        -240
+      ],
+      "id": "51bbfe16-93a1-4173-8b95-2dbd5402edaa",
+      "name": "Email valido?"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "9dbcfc33-9ad6-408f-8b3f-7748e59747ba",
+              "leftValue": "={{ $json.telefono.length }}",
+              "rightValue": 10,
+              "operator": {
+                "type": "number",
+                "operation": "gte"
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        896,
+        -416
+      ],
+      "id": "06e4114d-b7a4-4204-903b-cf48536fb1f3",
+      "name": "Telefono valido?"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU",
+          "mode": "list",
+          "cachedResultName": "Reto 16 - Control de calidad de clientes en el taller",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1677562046,
+          "mode": "list",
+          "cachedResultName": "Clientes_Maestro",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit#gid=1677562046"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "email",
+              "lookupValue": "={{ $json.email }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -576
+      ],
+      "id": "7bda90e0-e249-4a1c-a69d-b88b8368d4ff",
+      "name": "Buscar email en maestro",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": true
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1344,
+        -576
+      ],
+      "id": "f2129588-89dd-4f29-b5de-fb343aebd53f",
+      "name": "Combinar cliente y busqueda"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "902152dc-59fd-4e70-8e9c-c7112814decd",
+              "leftValue": "={{ $('Buscar email en maestro').all().some(item => Object.keys(item.json).length > 0) }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1568,
+        -576
+      ],
+      "id": "23e2d015-3b0b-4397-9830-50b91cbb8c07",
+      "name": "Email duplicado?"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "65d5e08f-af8f-4551-89ca-7410dc8c5f11",
+              "name": "estado",
+              "value": "VALIDO",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1792,
+        -384
+      ],
+      "id": "c106d5f3-6330-48ab-a7ea-e60ef400f33d",
+      "name": "Marcar VALIDO"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "e18ac041-cf86-4594-b6d9-29e36a8d1934",
+              "name": "estado",
+              "value": "DUPLICADO",
+              "type": "string"
+            },
+            {
+              "id": "221d30d2-9343-4e05-9bbc-5c73d686b414",
+              "name": "motivo",
+              "value": "El email ya existe en Clientes_Maestro",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1792,
+        -576
+      ],
+      "id": "8b426624-41a4-464a-a989-f64ffcb89d1b",
+      "name": "Marcar DUPLICADO"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5c5d6edd-c0aa-4a40-9149-7f9c0bf3e472",
+              "name": "estado",
+              "value": "REQUIERE_REVISION",
+              "type": "string"
+            },
+            {
+              "id": "a0b2e1c9-6fb4-401a-914c-70119d9a8ea3",
+              "name": "motivo",
+              "value": "El telefono debe tener al menos 10 digitos",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1792,
+        -192
+      ],
+      "id": "bde0faa2-1d2a-4107-aa0c-a137c4e53b35",
+      "name": "Marcar REQUIERE_REVISION"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "c29c1be5-a577-4247-b3cb-269624d3d6cd",
+              "name": "estado",
+              "value": "RECHAZADO",
+              "type": "string"
+            },
+            {
+              "id": "8c7dfbe2-99dd-45eb-9548-239f4b957701",
+              "name": "motivo",
+              "value": "Falta uno o mas campos obligatorios: nombre, email, empresa o NIT",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1792,
+        192
+      ],
+      "id": "826f8dd3-65d7-41a1-ac2e-468f27a1ffb8",
+      "name": "Marcar RECHAZADO - Campos"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "bcade1a9-2bac-4a01-a31d-e25e1891cc00",
+              "name": "estado",
+              "value": "RECHAZADO",
+              "type": "string"
+            },
+            {
+              "id": "bdd2d857-d592-48b2-bde4-0437c865e041",
+              "name": "motivo",
+              "value": "El email no tiene una estructura valida",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        1792,
+        0
+      ],
+      "id": "b793f70f-1a89-4e20-9e1c-c1ddec15c949",
+      "name": "Marcar RECHAZADO - Email"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU",
+          "mode": "list",
+          "cachedResultName": "Reto 16 - Control de calidad de clientes en el taller",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 1677562046,
+          "mode": "list",
+          "cachedResultName": "Clientes_Maestro",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit#gid=1677562046"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ $json.nombre }}",
+            "apellido": "={{ $json.apellido }}",
+            "email": "={{ $json.email }}",
+            "telefono": "={{ $json.telefono }}",
+            "empresa": "={{ $json.empresa }}",
+            "nit": "={{ $json.nit }}",
+            "ciudad": "={{ $json.ciudad }}",
+            "fecha": "={{ $json.fecha }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apellido",
+              "displayName": "apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nit",
+              "displayName": "nit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ciudad",
+              "displayName": "ciudad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2016,
+        -160
+      ],
+      "id": "fc3e06e9-1ac1-4f1d-87a5-e68c073a2624",
+      "name": "Guardar en Clientes_Maestro",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "numberInputs": 4
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        2016,
+        -416
+      ],
+      "id": "7bbde62e-79e7-4bfe-b7a5-663c1c8dd8a1",
+      "name": "Unir cuarentena"
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU",
+          "mode": "list",
+          "cachedResultName": "Reto 16 - Control de calidad de clientes en el taller",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": 332300334,
+          "mode": "list",
+          "cachedResultName": "Clientes_Cuarentena",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1xYiDdgTzqKj0lZ20piUibDw3ObzZ0Cw6tRltgIyXHEU/edit#gid=332300334"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "nombre": "={{ $json.nombre }}",
+            "apellido": "={{ $json.apellido }}",
+            "email": "={{ $json.email }}",
+            "telefono": "={{ $json.telefono }}",
+            "empresa": "={{ $json.empresa }}",
+            "nit": "={{ $json.nit }}",
+            "ciudad": "={{ $json.ciudad }}",
+            "fecha": "={{ $json.fecha }}",
+            "estado": "={{ $json.estado }}",
+            "motivo": "={{ $json.motivo }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "nombre",
+              "displayName": "nombre",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "apellido",
+              "displayName": "apellido",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "email",
+              "displayName": "email",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "telefono",
+              "displayName": "telefono",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "empresa",
+              "displayName": "empresa",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "nit",
+              "displayName": "nit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "ciudad",
+              "displayName": "ciudad",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "fecha",
+              "displayName": "fecha",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        2240,
+        -384
+      ],
+      "id": "27f6d979-56d1-4bea-b217-40ade4f4bee3",
+      "name": "Guardar en Clientes_Cuarentena",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Sheets Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Campos obligatorios completos?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Campos obligatorios completos?": {
+      "main": [
+        [
+          {
+            "node": "Email valido?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar RECHAZADO - Campos",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email valido?": {
+      "main": [
+        [
+          {
+            "node": "Telefono valido?",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar RECHAZADO - Email",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Telefono valido?": {
+      "main": [
+        [
+          {
+            "node": "Buscar email en maestro",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Combinar cliente y busqueda",
+            "type": "main",
+            "index": 1
+          }
+        ],
+        [
+          {
+            "node": "Marcar REQUIERE_REVISION",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Buscar email en maestro": {
+      "main": [
+        [
+          {
+            "node": "Combinar cliente y busqueda",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Combinar cliente y busqueda": {
+      "main": [
+        [
+          {
+            "node": "Email duplicado?",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Email duplicado?": {
+      "main": [
+        [
+          {
+            "node": "Marcar DUPLICADO",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Marcar VALIDO",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar VALIDO": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Clientes_Maestro",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Marcar RECHAZADO - Campos": {
+      "main": [
+        [
+          {
+            "node": "Unir cuarentena",
+            "type": "main",
+            "index": 3
+          }
+        ]
+      ]
+    },
+    "Marcar RECHAZADO - Email": {
+      "main": [
+        [
+          {
+            "node": "Unir cuarentena",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Marcar REQUIERE_REVISION": {
+      "main": [
+        [
+          {
+            "node": "Unir cuarentena",
+            "type": "main",
+            "index": 2
+          }
+        ]
+      ]
+    },
+    "Marcar DUPLICADO": {
+      "main": [
+        [
+          {
+            "node": "Unir cuarentena",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Unir cuarentena": {
+      "main": [
+        [
+          {
+            "node": "Guardar en Clientes_Cuarentena",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "b4fa5b98-7170-4df4-9acf-5f9237f8d899",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e18f7f45af7b762d17bca0cb617e7a822a32b40f721449038e7b3ba0ac7130a4"
+  },
+  "nodeGroups": [],
+  "id": "Ks7DHnCfCt2FDbL8",
+  "tags": []
+}

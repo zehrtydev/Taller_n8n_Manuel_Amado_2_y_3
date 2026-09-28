@@ -1,0 +1,670 @@
+{
+  "name": "Reto 11 - Radicación automática de facturas",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "simple": false,
+        "filters": {
+          "q": "has:attachment filename:pdf",
+          "readStatus": "unread"
+        },
+        "options": {
+          "downloadAttachments": true
+        }
+      },
+      "type": "n8n-nodes-base.gmailTrigger",
+      "typeVersion": 1.4,
+      "position": [
+        0,
+        128
+      ],
+      "id": "3ab3d8e6-d302-4f0e-926e-8eb2daf04cce",
+      "name": "Gmail Trigger",
+      "credentials": {
+        "gmailOAuth2": {
+          "id": "XHY6ouETa2Owl9td",
+          "name": "Gmail account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "pdf",
+        "binaryPropertyName": "attachment_0",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.extractFromFile",
+      "typeVersion": 1.1,
+      "position": [
+        224,
+        0
+      ],
+      "id": "1e214f54-8bb5-4df8-bfbf-498b668e4f2a",
+      "name": "Extract from File"
+    },
+    {
+      "parameters": {
+        "text": "={{ $json.text }}",
+        "attributes": {
+          "attributes": [
+            {
+              "name": "proveedor",
+              "description": "Nombre o razón social del proveedor que emite la factura."
+            },
+            {
+              "name": "nit",
+              "description": "NIT o identificación tributaria del proveedor emisor."
+            },
+            {
+              "name": "numero_factura",
+              "description": "Número, consecutivo o identificador de la factura."
+            },
+            {
+              "name": "fecha_factura",
+              "description": "Fecha de emisión de la factura, preferiblemente en formato YYYY-MM-DD."
+            },
+            {
+              "name": "fecha_vencimiento",
+              "description": "Fecha de vencimiento o fecha límite de pago, preferiblemente en formato YYYY-MM-DD."
+            },
+            {
+              "name": "subtotal",
+              "type": "number",
+              "description": "Valor antes de impuestos. Solo el número, sin símbolo de moneda ni separadores."
+            },
+            {
+              "name": "iva",
+              "type": "number",
+              "description": "Valor monetario total correspondiente al IVA. Solo el número."
+            },
+            {
+              "name": "total",
+              "type": "number",
+              "description": "Valor total final de la factura. Solo el número."
+            },
+            {
+              "name": "moneda",
+              "description": "Código de moneda de tres letras, por ejemplo COP, USD o EUR."
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "@n8n/n8n-nodes-langchain.informationExtractor",
+      "typeVersion": 1.2,
+      "position": [
+        448,
+        0
+      ],
+      "id": "c50ce144-1471-4498-92d2-b6eb5ff6612d",
+      "name": "Information Extractor"
+    },
+    {
+      "parameters": {
+        "model": "openai/gpt-oss-20b",
+        "options": {
+          "temperature": 0.1
+        }
+      },
+      "type": "@n8n/n8n-nodes-langchain.lmChatGroq",
+      "typeVersion": 1,
+      "position": [
+        528,
+        240
+      ],
+      "id": "72edcc19-ff6a-4a0a-a688-896961a7feaf",
+      "name": "Groq Chat Model",
+      "credentials": {
+        "groqApi": {
+          "id": "lJFfpGyKemSaxsxI",
+          "name": "Groq account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "f62073d9-2ed1-4e3d-8f55-359247906559",
+              "name": "proveedor",
+              "value": "={{ $json.output.proveedor }}",
+              "type": "string"
+            },
+            {
+              "id": "8f31e924-eff9-428b-bfb1-c93563c8cd9e",
+              "name": "nit",
+              "value": "={{ $json.output.nit }}",
+              "type": "string"
+            },
+            {
+              "id": "46b56d41-2e85-4a0a-abbb-d6d88aaf54c1",
+              "name": "numero_factura",
+              "value": "={{ $json.output.numero_factura }}",
+              "type": "string"
+            },
+            {
+              "id": "13650765-1809-4161-9940-0d5ff61174ff",
+              "name": "fecha_factura",
+              "value": "={{ $json.output.fecha_factura }}",
+              "type": "string"
+            },
+            {
+              "id": "d03d3f09-2e11-4358-8172-2ef0cf5b3030",
+              "name": "fecha_vencimiento",
+              "value": "={{ $json.output.fecha_vencimiento }}",
+              "type": "string"
+            },
+            {
+              "id": "0d032500-8af6-4159-bd40-7d94e5467267",
+              "name": "subtotal",
+              "value": "={{ $json.output.subtotal }}",
+              "type": "number"
+            },
+            {
+              "id": "2f1ef4f7-d5ab-4f09-8520-a12265103c32",
+              "name": "iva",
+              "value": "={{ $json.output.iva }}",
+              "type": "number"
+            },
+            {
+              "id": "ac9971b1-1256-428c-8bd9-401a76d569aa",
+              "name": "total",
+              "value": "={{ $json.output.total }}",
+              "type": "number"
+            },
+            {
+              "id": "dc481bda-c663-46ad-9608-e786eedf37ab",
+              "name": "moneda",
+              "value": "={{ $json.output.moneda }}",
+              "type": "string"
+            },
+            {
+              "id": "263a6805-2ec6-4a13-8d13-7cbf5413f569",
+              "name": "clave_factura",
+              "value": "={{ $json.output.nit.trim().toUpperCase() + '|' + $json.output.numero_factura.trim().toUpperCase() }}",
+              "type": "string"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        800,
+        0
+      ],
+      "id": "7964cb48-4573-4deb-b7dc-da4921c7dabc",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "documentId": {
+          "__rl": true,
+          "value": "1lqipN9KArBkHhdYYFvvVpa4wJcb6rXL9IwnvhqPQdGE",
+          "mode": "list",
+          "cachedResultName": "Reto 11 - Radicación automática de facturas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lqipN9KArBkHhdYYFvvVpa4wJcb6rXL9IwnvhqPQdGE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "db",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lqipN9KArBkHhdYYFvvVpa4wJcb6rXL9IwnvhqPQdGE/edit#gid=0"
+        },
+        "filtersUI": {
+          "values": [
+            {
+              "lookupColumn": "clave_factura",
+              "lookupValue": "={{ $json.clave_factura }}"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1024,
+        0
+      ],
+      "id": "a3a5e342-ccbe-4fe6-8a00-70e07d46ba51",
+      "name": "Get row(s) in sheet",
+      "alwaysOutputData": true,
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "1a08a986-b991-46cf-9e90-dc428c0dc527",
+              "leftValue": "={{ $json.clave_factura }}",
+              "rightValue": "=",
+              "operator": {
+                "type": "string",
+                "operation": "notEmpty",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        1248,
+        0
+      ],
+      "id": "33fbfe8b-9c93-46ab-ae24-95f16002ef28",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "mode": "combine",
+        "combineBy": "combineByPosition",
+        "options": {
+          "includeUnpaired": false
+        }
+      },
+      "type": "n8n-nodes-base.merge",
+      "typeVersion": 3.2,
+      "position": [
+        1472,
+        128
+      ],
+      "id": "64d3c7fb-c4c5-449a-8498-0ff56799ea9b",
+      "name": "Merge"
+    },
+    {
+      "parameters": {
+        "inputDataFieldName": "attachment_0",
+        "name": "={{ $binary.attachment_0.fileName }}",
+        "driveId": {
+          "__rl": true,
+          "value": "My Drive",
+          "mode": "list",
+          "cachedResultName": "My Drive",
+          "cachedResultUrl": "https://drive.google.com/drive/my-drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1u-tplk3fxIiaPHaXyIOV3g9YeVdk-T7Q",
+          "mode": "list",
+          "cachedResultName": "Reto 11 - Radicación automática de facturas",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1u-tplk3fxIiaPHaXyIOV3g9YeVdk-T7Q"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        1696,
+        128
+      ],
+      "id": "d4631f66-be8d-487d-a884-83b835458ab7",
+      "name": "Upload file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "q1vSSQYOsA98QXdF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1lqipN9KArBkHhdYYFvvVpa4wJcb6rXL9IwnvhqPQdGE",
+          "mode": "list",
+          "cachedResultName": "Reto 11 - Radicación automática de facturas",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lqipN9KArBkHhdYYFvvVpa4wJcb6rXL9IwnvhqPQdGE/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "db",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1lqipN9KArBkHhdYYFvvVpa4wJcb6rXL9IwnvhqPQdGE/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "clave_factura": "={{ $('Edit Fields').first().json.clave_factura }}",
+            "proveedor": "={{ $('Edit Fields').first().json.proveedor }}",
+            "nit": "={{ $('Edit Fields').first().json.nit }}",
+            "fecha_factura": "={{ $('Edit Fields').first().json.fecha_factura }}",
+            "numero_factura": "={{ $('Edit Fields').first().json.numero_factura }}",
+            "fecha_vencimiento": "={{ $('Edit Fields').first().json.fecha_vencimiento }}",
+            "subtotal": "={{ $('Edit Fields').first().json.subtotal }}",
+            "iva": "={{ $('Edit Fields').first().json.iva }}",
+            "total": "={{ $('Edit Fields').first().json.total }}",
+            "moneda": "={{ $('Edit Fields').first().json.moneda }}",
+            "drive_file_id": "={{ $json.id }}",
+            "drive_url": "={{ $json.webViewLink }}",
+            "fecha_radicacion": "={{ $now.toISO() }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "clave_factura",
+              "displayName": "clave_factura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "proveedor",
+              "displayName": "proveedor",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "nit",
+              "displayName": "nit",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "numero_factura",
+              "displayName": "numero_factura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_factura",
+              "displayName": "fecha_factura",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_vencimiento",
+              "displayName": "fecha_vencimiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "subtotal",
+              "displayName": "subtotal",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "iva",
+              "displayName": "iva",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "total",
+              "displayName": "total",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "moneda",
+              "displayName": "moneda",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "drive_file_id",
+              "displayName": "drive_file_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "drive_url",
+              "displayName": "drive_url",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            },
+            {
+              "id": "fecha_radicacion",
+              "displayName": "fecha_radicacion",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true,
+              "removed": false
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1920,
+        128
+      ],
+      "id": "a2ddba6e-f13c-48f2-b555-f32db63975f7",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Gmail Trigger": {
+      "main": [
+        [
+          {
+            "node": "Extract from File",
+            "type": "main",
+            "index": 0
+          },
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 1
+          }
+        ]
+      ]
+    },
+    "Extract from File": {
+      "main": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Groq Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Information Extractor",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Information Extractor": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "Get row(s) in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Get row(s) in sheet": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [],
+        [
+          {
+            "node": "Merge",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Merge": {
+      "main": [
+        [
+          {
+            "node": "Upload file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Upload file": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "e0c0716b-c49c-4c50-9e30-f34034b06a46",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e18f7f45af7b762d17bca0cb617e7a822a32b40f721449038e7b3ba0ac7130a4"
+  },
+  "nodeGroups": [],
+  "id": "i2g7h3cMrZZm6UWm",
+  "tags": [
+    {
+      "updatedAt": "2026-09-27T17:27:07.035Z",
+      "createdAt": "2026-09-27T17:27:07.035Z",
+      "id": "4okJcLyV3WCAP0R6",
+      "name": "drive"
+    },
+    {
+      "updatedAt": "2026-09-27T17:27:03.143Z",
+      "createdAt": "2026-09-27T17:27:03.143Z",
+      "id": "PXWHsnEwf5WQ00SM",
+      "name": "sheets"
+    },
+    {
+      "updatedAt": "2026-09-27T17:27:14.386Z",
+      "createdAt": "2026-09-27T17:27:14.386Z",
+      "id": "RePNC4Ucp5DLtNsz",
+      "name": "gmail"
+    },
+    {
+      "updatedAt": "2026-09-27T17:26:28.309Z",
+      "createdAt": "2026-09-27T17:26:28.309Z",
+      "id": "yxphyX4Bc9GmzDJ6",
+      "name": "groq"
+    }
+  ]
+}

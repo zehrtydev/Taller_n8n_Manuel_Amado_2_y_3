@@ -1,0 +1,631 @@
+{
+  "name": "Reto 12 - Gobernanza de entregables",
+  "nodes": [
+    {
+      "parameters": {
+        "pollTimes": {
+          "item": [
+            {
+              "mode": "everyMinute"
+            }
+          ]
+        },
+        "triggerOn": "specificFolder",
+        "folderToWatch": {
+          "__rl": true,
+          "value": "1yaij8rmiRHDLoQGE6Cvhkf4Enl7JHKds",
+          "mode": "id"
+        },
+        "event": "fileCreated",
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleDriveTrigger",
+      "typeVersion": 1,
+      "position": [
+        0,
+        -80
+      ],
+      "id": "16c4d73a-e7c8-436f-a639-01f8e2261184",
+      "name": "Google Drive Trigger",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "q1vSSQYOsA98QXdF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "7b6e8d14-924b-49a3-9fd4-edfd0aba94b6",
+              "name": "file_id",
+              "value": "={{ $json.id }}",
+              "type": "string"
+            },
+            {
+              "id": "1d2be6f5-6792-4c53-9dbe-761261a702bd",
+              "name": "file_name",
+              "value": "={{ $json.name }}",
+              "type": "string"
+            },
+            {
+              "id": "e06fe631-1050-41a8-80ec-d61a45050ffc",
+              "name": "mime_type",
+              "value": "={{ $json.mimeType }}",
+              "type": "string"
+            },
+            {
+              "id": "a92a6fc6-61a6-40cc-b992-a47242985902",
+              "name": "file_extension",
+              "value": "={{ $json.fileExtension.toLowerCase() }}",
+              "type": "string"
+            },
+            {
+              "id": "2d830efc-d32a-4500-be0e-3838dfc2d2d3",
+              "name": "nombre_valido",
+              "value": "={{ /^[A-Z0-9]+_[A-Z0-9]+_(INFORME|CONTRATO|ACTA|ENTREGABLE)_\\d{8}_V\\d{2}\\.[A-Za-z0-9]+$/.test($json.name) }}",
+              "type": "boolean"
+            },
+            {
+              "id": "0412456f-2067-42a8-8291-950d7da440dd",
+              "name": "extension_valida",
+              "value": "={{ ['pdf', 'docx'].includes($json.fileExtension.toLowerCase()) }}",
+              "type": "boolean"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        224,
+        -80
+      ],
+      "id": "0c7b53ac-ec4f-4a1f-91d9-efab792eba79",
+      "name": "Edit Fields"
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 3
+          },
+          "conditions": [
+            {
+              "id": "20ba02c3-5524-499f-8405-7292e33ff652",
+              "leftValue": "={{ $json.nombre_valido }}",
+              "rightValue": "={{ $json.extension_valida }}",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            },
+            {
+              "id": "7b7b5650-a96c-406b-83aa-06df0e851301",
+              "leftValue": "={{ $json.extension_valida }}",
+              "rightValue": "",
+              "operator": {
+                "type": "boolean",
+                "operation": "true",
+                "singleValue": true
+              }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.3,
+      "position": [
+        448,
+        -80
+      ],
+      "id": "54724fec-0f02-44ac-8ab9-fcbee0229753",
+      "name": "If"
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "91b4b4ed-4713-4c4f-b114-e99020715a9a",
+              "name": "estado",
+              "value": "RECHAZADO",
+              "type": "string"
+            },
+            {
+              "id": "03105286-80a3-4be6-a4e1-776303f24793",
+              "name": "carpeta_destino",
+              "value": "RECHAZADOS",
+              "type": "string"
+            },
+            {
+              "id": "e07b6ebd-d9cd-4762-8617-9726d8fa47fb",
+              "name": "motivo",
+              "value": "={{   !$json.nombre_valido && !$json.extension_valida     ? 'Nombre incorrecto y extensión no autorizada'     : !$json.nombre_valido       ? 'Nombre no cumple la convención'       : 'Extensión no autorizada' }}",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        16
+      ],
+      "id": "1cecb6a3-848b-4a29-b6ba-0ef5b7c98389",
+      "name": "Preparar rechazo"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.file_id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "1WDzLq-gJGOOlMR0un5ZO_3G1oTBcP7_Q",
+          "mode": "list",
+          "cachedResultName": "RECHAZADOS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/1WDzLq-gJGOOlMR0un5ZO_3G1oTBcP7_Q"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        16
+      ],
+      "id": "f9ec7e2e-9bcf-4f42-89d8-3be5b8e86cfa",
+      "name": "Mover a RECHAZADOS",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "q1vSSQYOsA98QXdF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1y6SBp1YebF0UeXlF60tmtRFwZdbmIsyVfEU7ijMuwR8",
+          "mode": "list",
+          "cachedResultName": "Reto 12 - Gobernanza",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1y6SBp1YebF0UeXlF60tmtRFwZdbmIsyVfEU7ijMuwR8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "db",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1y6SBp1YebF0UeXlF60tmtRFwZdbmIsyVfEU7ijMuwR8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha_procesamiento": "={{ $now.toISO() }}",
+            "file_id": "={{ $('Preparar rechazo').item.json.file_id }}",
+            "file_name": "={{ $('Preparar rechazo').item.json.file_name }}",
+            "mime_type": "={{ $('Preparar rechazo').item.json.mime_type }}",
+            "estado": "={{ $('Preparar rechazo').item.json.estado }}",
+            "motivo": "={{ $('Preparar rechazo').item.json.motivo }}",
+            "carpeta_destino": "={{ $('Preparar rechazo').item.json.carpeta_destino }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha_procesamiento",
+              "displayName": "fecha_procesamiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mime_type",
+              "displayName": "mime_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "carpeta_destino",
+              "displayName": "carpeta_destino",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        16
+      ],
+      "id": "e1878e6c-ae11-4899-93cc-f4ceda674c8d",
+      "name": "Append row in sheet",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "assignments": {
+          "assignments": [
+            {
+              "id": "5018c316-5fa7-4f94-884e-86f12fd5a014",
+              "name": "estado",
+              "value": "ACEPTADO",
+              "type": "string"
+            },
+            {
+              "id": "783227ae-0456-41ec-acc5-eb83152431c2",
+              "name": "carpeta_destino",
+              "value": "ACEPTADOS",
+              "type": "string"
+            },
+            {
+              "id": "7935b7a2-8a42-48ba-8cc1-2c9d9d34b119",
+              "name": "motivo",
+              "value": "",
+              "type": "string"
+            }
+          ]
+        },
+        "includeOtherFields": true,
+        "options": {}
+      },
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.5,
+      "position": [
+        672,
+        -176
+      ],
+      "id": "e9c6766f-6c16-4b37-89d0-73cea1bf3ba6",
+      "name": "Preparar ACEPTACION"
+    },
+    {
+      "parameters": {
+        "operation": "move",
+        "fileId": {
+          "__rl": true,
+          "value": "={{ $json.file_id }}",
+          "mode": "id"
+        },
+        "driveId": {
+          "__rl": true,
+          "mode": "list",
+          "value": "My Drive"
+        },
+        "folderId": {
+          "__rl": true,
+          "value": "13c_Jw1bJvNliAXiooCwYnLoeDbEncBzd",
+          "mode": "list",
+          "cachedResultName": "ACEPTADOS",
+          "cachedResultUrl": "https://drive.google.com/drive/folders/13c_Jw1bJvNliAXiooCwYnLoeDbEncBzd"
+        }
+      },
+      "type": "n8n-nodes-base.googleDrive",
+      "typeVersion": 3,
+      "position": [
+        896,
+        -176
+      ],
+      "id": "cdac7d56-8832-4094-8151-df26257ffe4e",
+      "name": "Move file",
+      "credentials": {
+        "googleDriveOAuth2Api": {
+          "id": "q1vSSQYOsA98QXdF",
+          "name": "Google Drive account"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "operation": "append",
+        "documentId": {
+          "__rl": true,
+          "value": "1y6SBp1YebF0UeXlF60tmtRFwZdbmIsyVfEU7ijMuwR8",
+          "mode": "list",
+          "cachedResultName": "Reto 12 - Gobernanza",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1y6SBp1YebF0UeXlF60tmtRFwZdbmIsyVfEU7ijMuwR8/edit?usp=drivesdk"
+        },
+        "sheetName": {
+          "__rl": true,
+          "value": "gid=0",
+          "mode": "list",
+          "cachedResultName": "db",
+          "cachedResultUrl": "https://docs.google.com/spreadsheets/d/1y6SBp1YebF0UeXlF60tmtRFwZdbmIsyVfEU7ijMuwR8/edit#gid=0"
+        },
+        "columns": {
+          "mappingMode": "defineBelow",
+          "value": {
+            "fecha_procesamiento": "={{ $now.toISO() }}",
+            "file_id": "={{ $('Preparar ACEPTACION').item.json.file_id }}",
+            "file_name": "={{ $('Preparar ACEPTACION').item.json.file_name }}",
+            "mime_type": "={{ $('Preparar ACEPTACION').item.json.mime_type }}",
+            "estado": "={{ $('Preparar ACEPTACION').item.json.estado }}",
+            "motivo": "={{ $('Preparar ACEPTACION').item.json.motivo }}",
+            "carpeta_destino": "={{ $('Preparar ACEPTACION').item.json.carpeta_destino }}"
+          },
+          "matchingColumns": [],
+          "schema": [
+            {
+              "id": "fecha_procesamiento",
+              "displayName": "fecha_procesamiento",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_id",
+              "displayName": "file_id",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "file_name",
+              "displayName": "file_name",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "mime_type",
+              "displayName": "mime_type",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "estado",
+              "displayName": "estado",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "motivo",
+              "displayName": "motivo",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            },
+            {
+              "id": "carpeta_destino",
+              "displayName": "carpeta_destino",
+              "required": false,
+              "defaultMatch": false,
+              "display": true,
+              "type": "string",
+              "canBeUsedToMatch": true
+            }
+          ],
+          "attemptToConvertTypes": false,
+          "convertFieldsToString": false
+        },
+        "options": {}
+      },
+      "type": "n8n-nodes-base.googleSheets",
+      "typeVersion": 4.7,
+      "position": [
+        1120,
+        -176
+      ],
+      "id": "c2335fbe-a43f-4f94-b041-50fe1c953cec",
+      "name": "Append row in sheet1",
+      "credentials": {
+        "googleSheetsOAuth2Api": {
+          "id": "HsazcOdS0RccKxQf",
+          "name": "Google Sheets account"
+        }
+      }
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Google Drive Trigger": {
+      "main": [
+        [
+          {
+            "node": "Edit Fields",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Edit Fields": {
+      "main": [
+        [
+          {
+            "node": "If",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If": {
+      "main": [
+        [
+          {
+            "node": "Preparar ACEPTACION",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Preparar rechazo",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Preparar rechazo": {
+      "main": [
+        [
+          {
+            "node": "Mover a RECHAZADOS",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Mover a RECHAZADOS": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Append row in sheet": {
+      "main": [
+        []
+      ]
+    },
+    "Preparar ACEPTACION": {
+      "main": [
+        [
+          {
+            "node": "Move file",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Move file": {
+      "main": [
+        [
+          {
+            "node": "Append row in sheet1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1",
+    "binaryMode": "separate"
+  },
+  "versionId": "23b48bc2-925c-45a1-8c9c-73d57519ef96",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "e18f7f45af7b762d17bca0cb617e7a822a32b40f721449038e7b3ba0ac7130a4"
+  },
+  "nodeGroups": [],
+  "id": "kDubCTO3l0e5e6ty",
+  "tags": [
+    {
+      "updatedAt": "2026-09-27T17:27:07.035Z",
+      "createdAt": "2026-09-27T17:27:07.035Z",
+      "id": "4okJcLyV3WCAP0R6",
+      "name": "drive"
+    },
+    {
+      "updatedAt": "2026-09-27T17:27:03.143Z",
+      "createdAt": "2026-09-27T17:27:03.143Z",
+      "id": "PXWHsnEwf5WQ00SM",
+      "name": "sheets"
+    },
+    {
+      "updatedAt": "2026-09-27T17:27:14.386Z",
+      "createdAt": "2026-09-27T17:27:14.386Z",
+      "id": "RePNC4Ucp5DLtNsz",
+      "name": "gmail"
+    }
+  ]
+}
